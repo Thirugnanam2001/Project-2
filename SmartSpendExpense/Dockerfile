@@ -3,34 +3,28 @@ FROM maven:3.9.6-eclipse-temurin-17 AS build
 
 WORKDIR /app
 
-# Copy the pom.xml first and download dependencies
+# Copy pom.xml first for better caching
 COPY pom.xml .
 RUN mvn dependency:go-offline -B
 
-# Copy the rest of the source code
+# Copy source code
 COPY src ./src
 
-# Build the jar file - FIXED JAR NAME
+# Build the application
 RUN mvn clean package -DskipTests
 
-# Use a smaller JDK image to run the app
+# Runtime stage
 FROM eclipse-temurin:17-jre-alpine
 
 WORKDIR /app
 
-# Copy the jar built in the previous stage - FIXED JAR NAME
+# Copy the built JAR file
 COPY --from=build /app/target/SmartSpendExpense-0.0.1-SNAPSHOT.jar app.jar
 
-# Create a non-root user to run the application
-RUN addgroup -S spring && adduser -S spring -G spring
-USER spring
+# Expose application port
+EXPOSE 8091
 
-EXPOSE 8081
-
-# Health check (updated port)
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD wget --no-verbose --tries=1 --spider http://localhost:8081/ || exit 1
-
+# Run the application
 ENTRYPOINT ["java", "-jar", "app.jar"]
 
 
