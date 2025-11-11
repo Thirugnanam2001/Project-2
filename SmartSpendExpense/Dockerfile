@@ -22,7 +22,7 @@ WORKDIR /app
 COPY --from=build /app/target/SmartSpendExpense-0.0.1-SNAPSHOT.jar app.jar
 
 # Expose application port
-EXPOSE 8091
+EXPOSE 8081
 
 # Run the application
 ENTRYPOINT ["java", "-jar", "app.jar"]
